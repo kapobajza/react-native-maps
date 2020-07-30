@@ -120,6 +120,7 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
   private FusedLocationSource fusedLocationSource;
 
   public ClusterManager<AirMapClusterItem> clusterManager;
+  public static boolean shouldRenderCluster = false;
 
   private ViewAttacherGroup attacherGroup;
 
@@ -378,6 +379,9 @@ public class AirMapView extends MapView implements GoogleMap.InfoWindowAdapter,
           cameraLastIdleBounds = bounds;
           eventDispatcher.dispatchEvent(new RegionChangeEvent(getId(), bounds, false));
           clusterManager.cluster();
+          float cameraZoom = map.getCameraPosition().zoom;
+          float cameraMaxZoom = map.getMaxZoomLevel();
+          shouldRenderCluster = cameraZoom < cameraMaxZoom - 2;
         }
       }
     });

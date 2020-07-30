@@ -14,6 +14,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
@@ -65,5 +66,10 @@ public class AirClusterRenderer extends DefaultClusterRenderer<AirMapClusterItem
             }
           });
     }
+  }
+
+  @Override
+  protected boolean shouldRenderAsCluster(Cluster<AirMapClusterItem> cluster) {
+    return cluster.getSize() > getMinClusterSize() && AirMapView.shouldRenderCluster;
   }
 }
