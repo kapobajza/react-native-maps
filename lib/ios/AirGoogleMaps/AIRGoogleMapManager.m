@@ -96,6 +96,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPanDrag, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onUserLocationChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMarkerPress, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onClusterItemPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRegionChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRegionChangeComplete, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPoiClick, RCTDirectEventBlock)
@@ -564,6 +565,33 @@ RCT_EXPORT_METHOD(setIndoorActiveLevelIndex:(nonnull NSNumber *)reactTag
   }];
  }
 
+ RCT_EXPORT_METHOD(addClusterItems:(nonnull NSNumber *)reactTag
+                   items:(nonnull NSArray *) items)
+ {
+   [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+     id view = viewRegistry[reactTag];
+     if (![view isKindOfClass:[AIRGoogleMap class]]) {
+       RCTLogError(@"Invalid view returned from registry, expecting AIRGoogleMap, got: %@", view);
+     } else {
+       AIRGoogleMap *mapView = (AIRGoogleMap *)view;
+       [mapView addClusterItems:items];
+     }
+   }];
+  }
+
+  RCT_EXPORT_METHOD(clearClusterItems:(nonnull NSNumber *)reactTag)
+  {
+    [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+      id view = viewRegistry[reactTag];
+      if (![view isKindOfClass:[AIRGoogleMap class]]) {
+        RCTLogError(@"Invalid view returned from registry, expecting AIRGoogleMap, got: %@", view);
+      } else {
+        AIRGoogleMap *mapView = (AIRGoogleMap *)view;
+        [mapView clearClusterItems];
+      }
+    }];
+   }
+
 + (BOOL)requiresMainQueueSetup {
   return YES;
 }
@@ -678,7 +706,7 @@ RCT_EXPORT_METHOD(setIndoorActiveLevelIndex:(nonnull NSNumber *)reactTag
   );
 }
 
-- (void) didChangeActiveLevel: (nullable GMSIndoorLevel *) 	level {
+- (void) didChangeActiveLevel: (nullable GMSIndoorLevel *)  level {
   if (!self.map.onIndoorLevelActivated || !self.map.indoorDisplay  || !level) {
     return;
   }
