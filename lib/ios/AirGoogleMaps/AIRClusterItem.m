@@ -14,7 +14,8 @@
 - (instancetype) initWithPosition: (NSString *)identifier
                          location:(CLLocationCoordinate2D)position
                           iconUrl:(NSString *)iconUrl
-                        iconWidth:(NSNumber *)iconWidth {
+                        iconWidth:(NSNumber *)iconWidth
+{
     self = [super init];
     
     if (self) {

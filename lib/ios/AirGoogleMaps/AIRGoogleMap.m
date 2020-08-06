@@ -37,19 +37,19 @@
 #define GMUKMLParser void
 #define GMUPlacemark void
 #define REQUIRES_GOOGLE_MAPS_UTILS(feature) do { \
- [NSException raise:@"ReactNativeMapsDependencyMissing" \
-             format:@"Use of " feature "requires Google-Maps-iOS-Utils, you  must install via CocoaPods to use this feature"]; \
+[NSException raise:@"ReactNativeMapsDependencyMissing" \
+format:@"Use of " feature "requires Google-Maps-iOS-Utils, you  must install via CocoaPods to use this feature"]; \
 } while (0)
 #endif
 
 
 id regionAsJSON(MKCoordinateRegion region) {
-  return @{
-           @"latitude": [NSNumber numberWithDouble:region.center.latitude],
-           @"longitude": [NSNumber numberWithDouble:region.center.longitude],
-           @"latitudeDelta": [NSNumber numberWithDouble:region.span.latitudeDelta],
-           @"longitudeDelta": [NSNumber numberWithDouble:region.span.longitudeDelta],
-           };
+    return @{
+        @"latitude": [NSNumber numberWithDouble:region.center.latitude],
+        @"longitude": [NSNumber numberWithDouble:region.center.longitude],
+        @"latitudeDelta": [NSNumber numberWithDouble:region.span.latitudeDelta],
+        @"longitudeDelta": [NSNumber numberWithDouble:region.span.longitudeDelta],
+    };
 }
 
 @interface AIRGoogleMap ()
@@ -62,13 +62,13 @@ id regionAsJSON(MKCoordinateRegion region) {
 
 @implementation AIRGoogleMap
 {
-  NSMutableArray<UIView *> *_reactSubviews;
-  MKCoordinateRegion _initialRegion;
-  MKCoordinateRegion _region;
-  BOOL _initialCameraSetOnLoad;
-  BOOL _didCallOnMapReady;
-  BOOL _didMoveToWindow;
-  BOOL _zoomTapEnabled;
+    NSMutableArray<UIView *> *_reactSubviews;
+    MKCoordinateRegion _initialRegion;
+    MKCoordinateRegion _region;
+    BOOL _initialCameraSetOnLoad;
+    BOOL _didCallOnMapReady;
+    BOOL _didMoveToWindow;
+    BOOL _zoomTapEnabled;
 #ifdef HAVE_GOOGLE_MAPS_UTILS
     GMUClusterManager *_clusterManager;
     NSMutableDictionary<NSString *, AIRClusterItem *> *_clusterMap;
@@ -77,102 +77,102 @@ id regionAsJSON(MKCoordinateRegion region) {
 
 - (instancetype)init
 {
-  if ((self = [super init])) {
-    _reactSubviews = [NSMutableArray new];
-    _markers = [NSMutableArray array];
-    _polygons = [NSMutableArray array];
-    _polylines = [NSMutableArray array];
-    _circles = [NSMutableArray array];
-    _heatmaps = [NSMutableArray array];
-    _tiles = [NSMutableArray array];
-    _overlays = [NSMutableArray array];
-    _initialCamera = nil;
-    _cameraProp = nil;
-    _initialRegion = MKCoordinateRegionMake(CLLocationCoordinate2DMake(0.0, 0.0), MKCoordinateSpanMake(0.0, 0.0));
-    _region = MKCoordinateRegionMake(CLLocationCoordinate2DMake(0.0, 0.0), MKCoordinateSpanMake(0.0, 0.0));
-    _initialCameraSetOnLoad = false;
-    _didCallOnMapReady = false;
-    _didMoveToWindow = false;
-    _zoomTapEnabled = YES;
-    _clusterMap = [[NSMutableDictionary alloc] init];
-
-    // Listen to the myLocation property of GMSMapView.
-    [self addObserver:self
-           forKeyPath:@"myLocation"
-              options:NSKeyValueObservingOptionNew
-              context:NULL];
-      
-    self.origGestureRecognizersMeta = [[NSMutableDictionary alloc] init];
-  }
-  return self;
+    if ((self = [super init])) {
+        _reactSubviews = [NSMutableArray new];
+        _markers = [NSMutableArray array];
+        _polygons = [NSMutableArray array];
+        _polylines = [NSMutableArray array];
+        _circles = [NSMutableArray array];
+        _heatmaps = [NSMutableArray array];
+        _tiles = [NSMutableArray array];
+        _overlays = [NSMutableArray array];
+        _initialCamera = nil;
+        _cameraProp = nil;
+        _initialRegion = MKCoordinateRegionMake(CLLocationCoordinate2DMake(0.0, 0.0), MKCoordinateSpanMake(0.0, 0.0));
+        _region = MKCoordinateRegionMake(CLLocationCoordinate2DMake(0.0, 0.0), MKCoordinateSpanMake(0.0, 0.0));
+        _initialCameraSetOnLoad = false;
+        _didCallOnMapReady = false;
+        _didMoveToWindow = false;
+        _zoomTapEnabled = YES;
+        _clusterMap = [[NSMutableDictionary alloc] init];
+        
+        // Listen to the myLocation property of GMSMapView.
+        [self addObserver:self
+               forKeyPath:@"myLocation"
+                  options:NSKeyValueObservingOptionNew
+                  context:NULL];
+        
+        self.origGestureRecognizersMeta = [[NSMutableDictionary alloc] init];
+    }
+    return self;
 }
 
 - (void)dealloc {
-  [self removeObserver:self
-            forKeyPath:@"myLocation"
-               context:NULL];
+    [self removeObserver:self
+              forKeyPath:@"myLocation"
+                 context:NULL];
 }
 
 - (id)eventFromCoordinate:(CLLocationCoordinate2D)coordinate {
-
-  CGPoint touchPoint = [self.projection pointForCoordinate:coordinate];
-
-  return @{
-           @"coordinate": @{
-               @"latitude": @(coordinate.latitude),
-               @"longitude": @(coordinate.longitude),
-               },
-           @"position": @{
-               @"x": @(touchPoint.x),
-               @"y": @(touchPoint.y),
-               },
-           };
+    
+    CGPoint touchPoint = [self.projection pointForCoordinate:coordinate];
+    
+    return @{
+        @"coordinate": @{
+                @"latitude": @(coordinate.latitude),
+                @"longitude": @(coordinate.longitude),
+        },
+        @"position": @{
+                @"x": @(touchPoint.x),
+                @"y": @(touchPoint.y),
+        },
+    };
 }
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-missing-super-calls"
 - (void)insertReactSubview:(id<RCTComponent>)subview atIndex:(NSInteger)atIndex {
-  // Our desired API is to pass up markers/overlays as children to the mapview component.
-  // This is where we intercept them and do the appropriate underlying mapview action.
-  if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
-    AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = self;
-    [self.markers addObject:marker];
-  } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
-    AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
-    polygon.polygon.map = self;
-    [self.polygons addObject:polygon];
-  } else if ([subview isKindOfClass:[AIRGoogleMapPolyline class]]) {
-    AIRGoogleMapPolyline *polyline = (AIRGoogleMapPolyline*)subview;
-    polyline.polyline.map = self;
-    [self.polylines addObject:polyline];
-  } else if ([subview isKindOfClass:[AIRGoogleMapCircle class]]) {
-    AIRGoogleMapCircle *circle = (AIRGoogleMapCircle*)subview;
-    circle.circle.map = self;
-    [self.circles addObject:circle];
-  } else if ([subview isKindOfClass:[AIRGoogleMapUrlTile class]]) {
-    AIRGoogleMapUrlTile *tile = (AIRGoogleMapUrlTile*)subview;
-    tile.tileLayer.map = self;
-    [self.tiles addObject:tile];
-  } else if ([subview isKindOfClass:[AIRGoogleMapWMSTile class]]) {
-    AIRGoogleMapWMSTile *tile = (AIRGoogleMapWMSTile*)subview;
-    tile.tileLayer.map = self;
-    [self.tiles addObject:tile];
-  } else if ([subview isKindOfClass:[AIRGoogleMapOverlay class]]) {
-    AIRGoogleMapOverlay *overlay = (AIRGoogleMapOverlay*)subview;
-    overlay.overlay.map = self;
-    [self.overlays addObject:overlay];
-  } else if ([subview isKindOfClass:[AIRGoogleMapHeatmap class]]){
-    AIRGoogleMapHeatmap *heatmap = (AIRGoogleMapHeatmap*)subview;
-    heatmap.heatmap.map = self;
-    [self.heatmaps addObject:heatmap];
-  } else {
-    NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
-    for (int i = 0; i < childSubviews.count; i++) {
-      [self insertReactSubview:(UIView *)childSubviews[i] atIndex:atIndex];
+    // Our desired API is to pass up markers/overlays as children to the mapview component.
+    // This is where we intercept them and do the appropriate underlying mapview action.
+    if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
+        AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
+        marker.realMarker.map = self;
+        [self.markers addObject:marker];
+    } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
+        AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
+        polygon.polygon.map = self;
+        [self.polygons addObject:polygon];
+    } else if ([subview isKindOfClass:[AIRGoogleMapPolyline class]]) {
+        AIRGoogleMapPolyline *polyline = (AIRGoogleMapPolyline*)subview;
+        polyline.polyline.map = self;
+        [self.polylines addObject:polyline];
+    } else if ([subview isKindOfClass:[AIRGoogleMapCircle class]]) {
+        AIRGoogleMapCircle *circle = (AIRGoogleMapCircle*)subview;
+        circle.circle.map = self;
+        [self.circles addObject:circle];
+    } else if ([subview isKindOfClass:[AIRGoogleMapUrlTile class]]) {
+        AIRGoogleMapUrlTile *tile = (AIRGoogleMapUrlTile*)subview;
+        tile.tileLayer.map = self;
+        [self.tiles addObject:tile];
+    } else if ([subview isKindOfClass:[AIRGoogleMapWMSTile class]]) {
+        AIRGoogleMapWMSTile *tile = (AIRGoogleMapWMSTile*)subview;
+        tile.tileLayer.map = self;
+        [self.tiles addObject:tile];
+    } else if ([subview isKindOfClass:[AIRGoogleMapOverlay class]]) {
+        AIRGoogleMapOverlay *overlay = (AIRGoogleMapOverlay*)subview;
+        overlay.overlay.map = self;
+        [self.overlays addObject:overlay];
+    } else if ([subview isKindOfClass:[AIRGoogleMapHeatmap class]]){
+        AIRGoogleMapHeatmap *heatmap = (AIRGoogleMapHeatmap*)subview;
+        heatmap.heatmap.map = self;
+        [self.heatmaps addObject:heatmap];
+    } else {
+        NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
+        for (int i = 0; i < childSubviews.count; i++) {
+            [self insertReactSubview:(UIView *)childSubviews[i] atIndex:atIndex];
+        }
     }
-  }
-  [_reactSubviews insertObject:(UIView *)subview atIndex:(NSUInteger) atIndex];
+    [_reactSubviews insertObject:(UIView *)subview atIndex:(NSUInteger) atIndex];
 }
 #pragma clang diagnostic pop
 
@@ -180,54 +180,54 @@ id regionAsJSON(MKCoordinateRegion region) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-missing-super-calls"
 - (void)removeReactSubview:(id<RCTComponent>)subview {
-  // similarly, when the children are being removed we have to do the appropriate
-  // underlying mapview action here.
-  if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
-    AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
-    marker.realMarker.map = nil;
-    [self.markers removeObject:marker];
-  } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
-    AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
-    polygon.polygon.map = nil;
-    [self.polygons removeObject:polygon];
-  } else if ([subview isKindOfClass:[AIRGoogleMapPolyline class]]) {
-    AIRGoogleMapPolyline *polyline = (AIRGoogleMapPolyline*)subview;
-    polyline.polyline.map = nil;
-    [self.polylines removeObject:polyline];
-  } else if ([subview isKindOfClass:[AIRGoogleMapCircle class]]) {
-    AIRGoogleMapCircle *circle = (AIRGoogleMapCircle*)subview;
-    circle.circle.map = nil;
-    [self.circles removeObject:circle];
-  } else if ([subview isKindOfClass:[AIRGoogleMapUrlTile class]]) {
-    AIRGoogleMapUrlTile *tile = (AIRGoogleMapUrlTile*)subview;
-    tile.tileLayer.map = nil;
-    [self.tiles removeObject:tile];
-  } else if ([subview isKindOfClass:[AIRGoogleMapWMSTile class]]) {
-    AIRGoogleMapWMSTile *tile = (AIRGoogleMapWMSTile*)subview;
-    tile.tileLayer.map = nil;
-    [self.tiles removeObject:tile];
-  } else if ([subview isKindOfClass:[AIRGoogleMapOverlay class]]) {
-    AIRGoogleMapOverlay *overlay = (AIRGoogleMapOverlay*)subview;
-    overlay.overlay.map = nil;
-    [self.overlays removeObject:overlay];
-  } else if ([subview isKindOfClass:[AIRGoogleMapHeatmap class]]){
-    AIRGoogleMapHeatmap *heatmap = (AIRGoogleMapHeatmap*)subview;
-    heatmap.heatmap.map = nil;
-    [self.heatmaps removeObject:heatmap];
-  } else {
-    NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
-    for (int i = 0; i < childSubviews.count; i++) {
-      [self removeReactSubview:(UIView *)childSubviews[i]];
+    // similarly, when the children are being removed we have to do the appropriate
+    // underlying mapview action here.
+    if ([subview isKindOfClass:[AIRGoogleMapMarker class]]) {
+        AIRGoogleMapMarker *marker = (AIRGoogleMapMarker*)subview;
+        marker.realMarker.map = nil;
+        [self.markers removeObject:marker];
+    } else if ([subview isKindOfClass:[AIRGoogleMapPolygon class]]) {
+        AIRGoogleMapPolygon *polygon = (AIRGoogleMapPolygon*)subview;
+        polygon.polygon.map = nil;
+        [self.polygons removeObject:polygon];
+    } else if ([subview isKindOfClass:[AIRGoogleMapPolyline class]]) {
+        AIRGoogleMapPolyline *polyline = (AIRGoogleMapPolyline*)subview;
+        polyline.polyline.map = nil;
+        [self.polylines removeObject:polyline];
+    } else if ([subview isKindOfClass:[AIRGoogleMapCircle class]]) {
+        AIRGoogleMapCircle *circle = (AIRGoogleMapCircle*)subview;
+        circle.circle.map = nil;
+        [self.circles removeObject:circle];
+    } else if ([subview isKindOfClass:[AIRGoogleMapUrlTile class]]) {
+        AIRGoogleMapUrlTile *tile = (AIRGoogleMapUrlTile*)subview;
+        tile.tileLayer.map = nil;
+        [self.tiles removeObject:tile];
+    } else if ([subview isKindOfClass:[AIRGoogleMapWMSTile class]]) {
+        AIRGoogleMapWMSTile *tile = (AIRGoogleMapWMSTile*)subview;
+        tile.tileLayer.map = nil;
+        [self.tiles removeObject:tile];
+    } else if ([subview isKindOfClass:[AIRGoogleMapOverlay class]]) {
+        AIRGoogleMapOverlay *overlay = (AIRGoogleMapOverlay*)subview;
+        overlay.overlay.map = nil;
+        [self.overlays removeObject:overlay];
+    } else if ([subview isKindOfClass:[AIRGoogleMapHeatmap class]]){
+        AIRGoogleMapHeatmap *heatmap = (AIRGoogleMapHeatmap*)subview;
+        heatmap.heatmap.map = nil;
+        [self.heatmaps removeObject:heatmap];
+    } else {
+        NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
+        for (int i = 0; i < childSubviews.count; i++) {
+            [self removeReactSubview:(UIView *)childSubviews[i]];
+        }
     }
-  }
-  [_reactSubviews removeObject:(UIView *)subview];
+    [_reactSubviews removeObject:(UIView *)subview];
 }
 #pragma clang diagnostic pop
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-missing-super-calls"
 - (NSArray<id<RCTComponent>> *)reactSubviews {
-  return _reactSubviews;
+    return _reactSubviews;
 }
 #pragma clang diagnostic pop
 
@@ -252,28 +252,28 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)didMoveToWindow {
-  if (_didMoveToWindow) return;
-  _didMoveToWindow = true;
-
-  if (_initialCamera != nil) {
-    self.camera = _initialCamera;
-  }
-  else if (_initialRegion.span.latitudeDelta != 0.0 &&
-      _initialRegion.span.longitudeDelta != 0.0) {
-    self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:_initialRegion];
-  } else if (_region.span.latitudeDelta != 0.0 &&
-      _region.span.longitudeDelta != 0.0) {
-    self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:_region];
-  }
-
-  [super didMoveToWindow];
+    if (_didMoveToWindow) return;
+    _didMoveToWindow = true;
+    
+    if (_initialCamera != nil) {
+        self.camera = _initialCamera;
+    }
+    else if (_initialRegion.span.latitudeDelta != 0.0 &&
+             _initialRegion.span.longitudeDelta != 0.0) {
+        self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:_initialRegion];
+    } else if (_region.span.latitudeDelta != 0.0 &&
+               _region.span.longitudeDelta != 0.0) {
+        self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:_region];
+    }
+    
+    [super didMoveToWindow];
 }
 
 - (void)setInitialRegion:(MKCoordinateRegion)initialRegion {
-  if (_initialCameraSetOnLoad) return;
-  _initialRegion = initialRegion;
-  _initialCameraSetOnLoad = _didMoveToWindow;
-  self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:initialRegion];
+    if (_initialCameraSetOnLoad) return;
+    _initialRegion = initialRegion;
+    _initialCameraSetOnLoad = _didMoveToWindow;
+    self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self andMKCoordinateRegion:initialRegion];
 }
 
 - (void)setInitialCamera:(GMSCameraPosition*)initialCamera {
@@ -284,9 +284,9 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)setRegion:(MKCoordinateRegion)region {
-  // TODO: The JS component is repeatedly setting region unnecessarily. We might want to deal with that in here.
-  _region = region;
-  self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self  andMKCoordinateRegion:region];
+    // TODO: The JS component is repeatedly setting region unnecessarily. We might want to deal with that in here.
+    _region = region;
+    self.camera = [AIRGoogleMap makeGMSCameraPositionFromMap:self  andMKCoordinateRegion:region];
 }
 
 - (void)setCameraProp:(GMSCameraPosition*)camera {
@@ -296,12 +296,12 @@ id regionAsJSON(MKCoordinateRegion region) {
 
 
 - (void)didPrepareMap {
-  UIView* mapView = [self valueForKey:@"mapView"]; //GMSVectorMapView
-  [self overrideGestureRecognizersForView:mapView];
+    UIView* mapView = [self valueForKey:@"mapView"]; //GMSVectorMapView
+    [self overrideGestureRecognizersForView:mapView];
     
-  if (_didCallOnMapReady) return;
-  _didCallOnMapReady = true;
-  if (self.onMapReady) self.onMapReady(@{});
+    if (_didCallOnMapReady) return;
+    _didCallOnMapReady = true;
+    if (self.onMapReady) self.onMapReady(@{});
 #ifdef HAVE_GOOGLE_MAPS_UTILS
     id<GMUClusterAlgorithm> algorithm =
     [[GMUNonHierarchicalDistanceBasedAlgorithm alloc] init];
@@ -318,175 +318,175 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)mapViewDidFinishTileRendering {
-  if (self.onMapLoaded) self.onMapLoaded(@{});
+    if (self.onMapLoaded) self.onMapLoaded(@{});
 }
 
 - (BOOL)didTapMarker:(GMSMarker *)marker {
-  //    AIRGMSMarker *airMarker = (AIRGMSMarker *)marker;
-  //
-  //    id event = @{@"action": @"marker-press",
-  //                 @"id": airMarker.identifier ?: @"unknown",
-  //                 @"coordinate": @{
-  //                         @"latitude": @(airMarker.position.latitude),
-  //                         @"longitude": @(airMarker.position.longitude)
-  //                 }
-  //    };
-  //
-  //    if (airMarker.onPress) airMarker.onPress(event);
-  //    if (self.onMarkerPress) self.onMarkerPress(event);
-  //
-  //    // TODO: not sure why this is necessary
-  //    [self setSelectedMarker:marker];
-
-  #ifdef HAVE_GOOGLE_MAPS_UTILS
-      [self animateToLocation:marker.position];
-      
-      if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
-          GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] init];
-          id<GMUCluster> cluster = (id<GMUCluster>) marker.userData;
-          
-          for (id<GMUClusterItem> item in cluster.items) {
-              bounds = [bounds includingCoordinate:item.position];
-          }
-          
-          [self animateWithCameraUpdate:[GMSCameraUpdate fitBounds:bounds withPadding:15.0f]];
-          return YES;
-      }
-      
-      if ([marker.userData conformsToProtocol:@protocol(GMUClusterItem)]) {
-          AIRClusterItem *item = (AIRClusterItem *)marker.userData;
-          NSString *identifier = item.identifier;
-          
-          id event = @{@"action": @"cluster-item-press",
-                       @"id": identifier ?: @"unknown",
-                       @"coordinate": @{
-                               @"latitude": @(item.position.latitude),
-                               @"longitude": @(item.position.longitude)
-                       }
-          };
-          
-          self.onClusterItemPress(event);
-      }
-  #endif
-      return NO;
+    //    AIRGMSMarker *airMarker = (AIRGMSMarker *)marker;
+    //
+    //    id event = @{@"action": @"marker-press",
+    //                 @"id": airMarker.identifier ?: @"unknown",
+    //                 @"coordinate": @{
+    //                         @"latitude": @(airMarker.position.latitude),
+    //                         @"longitude": @(airMarker.position.longitude)
+    //                 }
+    //    };
+    //
+    //    if (airMarker.onPress) airMarker.onPress(event);
+    //    if (self.onMarkerPress) self.onMarkerPress(event);
+    //
+    //    // TODO: not sure why this is necessary
+    //    [self setSelectedMarker:marker];
+    
+#ifdef HAVE_GOOGLE_MAPS_UTILS
+    [self animateToLocation:marker.position];
+    
+    if ([marker.userData conformsToProtocol:@protocol(GMUCluster)]) {
+        GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] init];
+        id<GMUCluster> cluster = (id<GMUCluster>) marker.userData;
+        
+        for (id<GMUClusterItem> item in cluster.items) {
+            bounds = [bounds includingCoordinate:item.position];
+        }
+        
+        [self animateWithCameraUpdate:[GMSCameraUpdate fitBounds:bounds withPadding:15.0f]];
+        return YES;
+    }
+    
+    if ([marker.userData conformsToProtocol:@protocol(GMUClusterItem)]) {
+        AIRClusterItem *item = (AIRClusterItem *)marker.userData;
+        NSString *identifier = item.identifier;
+        
+        id event = @{@"action": @"cluster-item-press",
+                     @"id": identifier ?: @"unknown",
+                     @"coordinate": @{
+                             @"latitude": @(item.position.latitude),
+                             @"longitude": @(item.position.longitude)
+                     }
+        };
+        
+        self.onClusterItemPress(event);
+    }
+#endif
+    return NO;
 }
 
 - (void)didTapPolyline:(GMSOverlay *)polyline {
-  AIRGMSPolyline *airPolyline = (AIRGMSPolyline *)polyline;
-
-  id event = @{@"action": @"polyline-press",
-               @"id": airPolyline.identifier ?: @"unknown",
-               };
-
-   if (airPolyline.onPress) airPolyline.onPress(event);
+    AIRGMSPolyline *airPolyline = (AIRGMSPolyline *)polyline;
+    
+    id event = @{@"action": @"polyline-press",
+                 @"id": airPolyline.identifier ?: @"unknown",
+    };
+    
+    if (airPolyline.onPress) airPolyline.onPress(event);
 }
 
 - (void)didTapPolygon:(GMSOverlay *)polygon {
     AIRGMSPolygon *airPolygon = (AIRGMSPolygon *)polygon;
-
+    
     id event = @{@"action": @"polygon-press",
                  @"id": airPolygon.identifier ?: @"unknown",
-                 };
-
+    };
+    
     if (airPolygon.onPress) airPolygon.onPress(event);
 }
 
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
-  if (!self.onPress) return;
-  self.onPress([self eventFromCoordinate:coordinate]);
+    if (!self.onPress) return;
+    self.onPress([self eventFromCoordinate:coordinate]);
 }
 
 - (void)didLongPressAtCoordinate:(CLLocationCoordinate2D)coordinate {
-  if (!self.onLongPress) return;
-  self.onLongPress([self eventFromCoordinate:coordinate]);
+    if (!self.onLongPress) return;
+    self.onLongPress([self eventFromCoordinate:coordinate]);
 }
 
 - (void)didChangeCameraPosition:(GMSCameraPosition *)position {
-  id event = @{@"continuous": @YES,
-               @"region": regionAsJSON([AIRGoogleMap makeGMSCameraPositionFromMap:self andGMSCameraPosition:position]),
-               };
-
-  if (self.onChange) self.onChange(event);
+    id event = @{@"continuous": @YES,
+                 @"region": regionAsJSON([AIRGoogleMap makeGMSCameraPositionFromMap:self andGMSCameraPosition:position]),
+    };
+    
+    if (self.onChange) self.onChange(event);
 }
 
 - (void)didTapPOIWithPlaceID:(NSString *)placeID
                         name:(NSString *)name
                     location:(CLLocationCoordinate2D)location {
-  id event = @{@"placeId": placeID,
-               @"name": name,
-               @"coordinate": @{
-                   @"latitude": @(location.latitude),
-                   @"longitude": @(location.longitude)
-                   }
-               };
-
-  if (self.onPoiClick) self.onPoiClick(event);
+    id event = @{@"placeId": placeID,
+                 @"name": name,
+                 @"coordinate": @{
+                         @"latitude": @(location.latitude),
+                         @"longitude": @(location.longitude)
+                 }
+    };
+    
+    if (self.onPoiClick) self.onPoiClick(event);
 }
 
 - (void)idleAtCameraPosition:(GMSCameraPosition *)position {
-  id event = @{@"continuous": @NO,
-               @"region": regionAsJSON([AIRGoogleMap makeGMSCameraPositionFromMap:self andGMSCameraPosition:position]),
-               };
-  if (self.onChange) self.onChange(event);  // complete
+    id event = @{@"continuous": @NO,
+                 @"region": regionAsJSON([AIRGoogleMap makeGMSCameraPositionFromMap:self andGMSCameraPosition:position]),
+    };
+    if (self.onChange) self.onChange(event);  // complete
 #ifdef HAVE_GOOGLE_MAPS_UTILS
     [_clusterManager cluster];
 #endif
 }
 
 - (void)setMapPadding:(UIEdgeInsets)mapPadding {
-  self.padding = mapPadding;
+    self.padding = mapPadding;
 }
 
 - (UIEdgeInsets)mapPadding {
-  return self.padding;
+    return self.padding;
 }
 
 - (void)setPaddingAdjustmentBehaviorString:(NSString *)str
 {
-  if ([str isEqualToString:@"never"])
-  {
-    self.paddingAdjustmentBehavior = kGMSMapViewPaddingAdjustmentBehaviorNever;
-  }
-  else if ([str isEqualToString:@"automatic"])
-  {
-    self.paddingAdjustmentBehavior = kGMSMapViewPaddingAdjustmentBehaviorAutomatic;
-  }
-  else //if ([str isEqualToString:@"always"]) <-- default
-  {
-    self.paddingAdjustmentBehavior = kGMSMapViewPaddingAdjustmentBehaviorAlways;
-  }
+    if ([str isEqualToString:@"never"])
+    {
+        self.paddingAdjustmentBehavior = kGMSMapViewPaddingAdjustmentBehaviorNever;
+    }
+    else if ([str isEqualToString:@"automatic"])
+    {
+        self.paddingAdjustmentBehavior = kGMSMapViewPaddingAdjustmentBehaviorAutomatic;
+    }
+    else //if ([str isEqualToString:@"always"]) <-- default
+    {
+        self.paddingAdjustmentBehavior = kGMSMapViewPaddingAdjustmentBehaviorAlways;
+    }
 }
 
 - (NSString *)paddingAdjustmentBehaviorString
 {
-  switch (self.paddingAdjustmentBehavior)
-  {
-    case kGMSMapViewPaddingAdjustmentBehaviorNever:
-      return @"never";
-    case kGMSMapViewPaddingAdjustmentBehaviorAutomatic:
-      return @"automatic";
-    case kGMSMapViewPaddingAdjustmentBehaviorAlways:
-      return @"always";
-      
-    default:
-      return @"unknown";
-  }
+    switch (self.paddingAdjustmentBehavior)
+    {
+        case kGMSMapViewPaddingAdjustmentBehaviorNever:
+            return @"never";
+        case kGMSMapViewPaddingAdjustmentBehaviorAutomatic:
+            return @"automatic";
+        case kGMSMapViewPaddingAdjustmentBehaviorAlways:
+            return @"always";
+            
+        default:
+            return @"unknown";
+    }
 }
 
 - (void)setScrollEnabled:(BOOL)scrollEnabled {
-  self.settings.scrollGestures = scrollEnabled;
+    self.settings.scrollGestures = scrollEnabled;
 }
 
 - (BOOL)scrollEnabled {
-  return self.settings.scrollGestures;
+    return self.settings.scrollGestures;
 }
 
 - (void)setZoomEnabled:(BOOL)zoomEnabled {
-  self.settings.zoomGestures = zoomEnabled;
+    self.settings.zoomGestures = zoomEnabled;
 }
 
 - (BOOL)zoomEnabled {
-  return self.settings.zoomGestures;
+    return self.settings.zoomGestures;
 }
 
 - (void)setZoomTapEnabled:(BOOL)zoomTapEnabled {
@@ -498,130 +498,130 @@ id regionAsJSON(MKCoordinateRegion region) {
 }
 
 - (void)setRotateEnabled:(BOOL)rotateEnabled {
-  self.settings.rotateGestures = rotateEnabled;
+    self.settings.rotateGestures = rotateEnabled;
 }
 
 - (BOOL)rotateEnabled {
-  return self.settings.rotateGestures;
+    return self.settings.rotateGestures;
 }
 
 - (void)setPitchEnabled:(BOOL)pitchEnabled {
-  self.settings.tiltGestures = pitchEnabled;
+    self.settings.tiltGestures = pitchEnabled;
 }
 
 - (BOOL)pitchEnabled {
-  return self.settings.tiltGestures;
+    return self.settings.tiltGestures;
 }
 
 - (void)setShowsTraffic:(BOOL)showsTraffic {
-  self.trafficEnabled = showsTraffic;
+    self.trafficEnabled = showsTraffic;
 }
 
 - (BOOL)showsTraffic {
-  return self.trafficEnabled;
+    return self.trafficEnabled;
 }
 
 - (void)setShowsBuildings:(BOOL)showsBuildings {
-  self.buildingsEnabled = showsBuildings;
+    self.buildingsEnabled = showsBuildings;
 }
 
 - (BOOL)showsBuildings {
-  return self.buildingsEnabled;
+    return self.buildingsEnabled;
 }
 
 - (void)setShowsCompass:(BOOL)showsCompass {
-  self.settings.compassButton = showsCompass;
+    self.settings.compassButton = showsCompass;
 }
 
 - (void)setCustomMapStyleString:(NSString *)customMapStyleString {
-  NSError *error;
-
-  GMSMapStyle *style = [GMSMapStyle styleWithJSONString:customMapStyleString error:&error];
-
-  if (!style) {
-    NSLog(@"The style definition could not be loaded: %@", error);
-  }
-
-  self.mapStyle = style;
+    NSError *error;
+    
+    GMSMapStyle *style = [GMSMapStyle styleWithJSONString:customMapStyleString error:&error];
+    
+    if (!style) {
+        NSLog(@"The style definition could not be loaded: %@", error);
+    }
+    
+    self.mapStyle = style;
 }
 
 - (BOOL)showsCompass {
-  return self.settings.compassButton;
+    return self.settings.compassButton;
 }
 
 - (void)setShowsUserLocation:(BOOL)showsUserLocation {
-  self.myLocationEnabled = showsUserLocation;
+    self.myLocationEnabled = showsUserLocation;
 }
 
 - (BOOL)showsUserLocation {
-  return self.myLocationEnabled;
+    return self.myLocationEnabled;
 }
 
 - (void)setShowsMyLocationButton:(BOOL)showsMyLocationButton {
-  self.settings.myLocationButton = showsMyLocationButton;
+    self.settings.myLocationButton = showsMyLocationButton;
 }
 
 - (BOOL)showsMyLocationButton {
-  return self.settings.myLocationButton;
+    return self.settings.myLocationButton;
 }
 
 - (void)setMinZoomLevel:(CGFloat)minZoomLevel {
-  [self setMinZoom:minZoomLevel maxZoom:self.maxZoom ];
+    [self setMinZoom:minZoomLevel maxZoom:self.maxZoom ];
 }
 
 - (void)setMaxZoomLevel:(CGFloat)maxZoomLevel {
-  [self setMinZoom:self.minZoom maxZoom:maxZoomLevel ];
+    [self setMinZoom:self.minZoom maxZoom:maxZoomLevel ];
 }
 
 - (void)setShowsIndoors:(BOOL)showsIndoors {
-  self.indoorEnabled = showsIndoors;
+    self.indoorEnabled = showsIndoors;
 }
 
 - (BOOL)showsIndoors {
-  return self.indoorEnabled;
+    return self.indoorEnabled;
 }
 
 - (void)setShowsIndoorLevelPicker:(BOOL)showsIndoorLevelPicker {
-  self.settings.indoorPicker = showsIndoorLevelPicker;
+    self.settings.indoorPicker = showsIndoorLevelPicker;
 }
 
 - (BOOL)showsIndoorLevelPicker {
-  return self.settings.indoorPicker;
+    return self.settings.indoorPicker;
 }
 
 + (MKCoordinateRegion) makeGMSCameraPositionFromMap:(GMSMapView *)map andGMSCameraPosition:(GMSCameraPosition *)position {
-  // solution from here: http://stackoverflow.com/a/16587735/1102215
-  GMSVisibleRegion visibleRegion = map.projection.visibleRegion;
-  GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithRegion: visibleRegion];
-  CLLocationCoordinate2D center;
-  CLLocationDegrees longitudeDelta;
-  CLLocationDegrees latitudeDelta = bounds.northEast.latitude - bounds.southWest.latitude;
-
-  if(bounds.northEast.longitude >= bounds.southWest.longitude) {
-    //Standard case
-    center = CLLocationCoordinate2DMake((bounds.southWest.latitude + bounds.northEast.latitude) / 2,
-                                        (bounds.southWest.longitude + bounds.northEast.longitude) / 2);
-    longitudeDelta = bounds.northEast.longitude - bounds.southWest.longitude;
-  } else {
-    //Region spans the international dateline
-    center = CLLocationCoordinate2DMake((bounds.southWest.latitude + bounds.northEast.latitude) / 2,
-                                        (bounds.southWest.longitude + bounds.northEast.longitude + 360) / 2);
-    longitudeDelta = bounds.northEast.longitude + 360 - bounds.southWest.longitude;
-  }
-  MKCoordinateSpan span = MKCoordinateSpanMake(latitudeDelta, longitudeDelta);
-  return MKCoordinateRegionMake(center, span);
+    // solution from here: http://stackoverflow.com/a/16587735/1102215
+    GMSVisibleRegion visibleRegion = map.projection.visibleRegion;
+    GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithRegion: visibleRegion];
+    CLLocationCoordinate2D center;
+    CLLocationDegrees longitudeDelta;
+    CLLocationDegrees latitudeDelta = bounds.northEast.latitude - bounds.southWest.latitude;
+    
+    if(bounds.northEast.longitude >= bounds.southWest.longitude) {
+        //Standard case
+        center = CLLocationCoordinate2DMake((bounds.southWest.latitude + bounds.northEast.latitude) / 2,
+                                            (bounds.southWest.longitude + bounds.northEast.longitude) / 2);
+        longitudeDelta = bounds.northEast.longitude - bounds.southWest.longitude;
+    } else {
+        //Region spans the international dateline
+        center = CLLocationCoordinate2DMake((bounds.southWest.latitude + bounds.northEast.latitude) / 2,
+                                            (bounds.southWest.longitude + bounds.northEast.longitude + 360) / 2);
+        longitudeDelta = bounds.northEast.longitude + 360 - bounds.southWest.longitude;
+    }
+    MKCoordinateSpan span = MKCoordinateSpanMake(latitudeDelta, longitudeDelta);
+    return MKCoordinateRegionMake(center, span);
 }
 
 + (GMSCameraPosition*) makeGMSCameraPositionFromMap:(GMSMapView *)map andMKCoordinateRegion:(MKCoordinateRegion)region {
-  float latitudeDelta = region.span.latitudeDelta * 0.5;
-  float longitudeDelta = region.span.longitudeDelta * 0.5;
-
-  CLLocationCoordinate2D a = CLLocationCoordinate2DMake(region.center.latitude + latitudeDelta,
-                                                        region.center.longitude + longitudeDelta);
-  CLLocationCoordinate2D b = CLLocationCoordinate2DMake(region.center.latitude - latitudeDelta,
-                                                        region.center.longitude - longitudeDelta);
-  GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithCoordinate:a coordinate:b];
-  return [map cameraForBounds:bounds insets:UIEdgeInsetsZero];
+    float latitudeDelta = region.span.latitudeDelta * 0.5;
+    float longitudeDelta = region.span.longitudeDelta * 0.5;
+    
+    CLLocationCoordinate2D a = CLLocationCoordinate2DMake(region.center.latitude + latitudeDelta,
+                                                          region.center.longitude + longitudeDelta);
+    CLLocationCoordinate2D b = CLLocationCoordinate2DMake(region.center.latitude - latitudeDelta,
+                                                          region.center.longitude - longitudeDelta);
+    GMSCoordinateBounds *bounds = [[GMSCoordinateBounds alloc] initWithCoordinate:a coordinate:b];
+    return [map cameraForBounds:bounds insets:UIEdgeInsetsZero];
 }
 
 #pragma mark - Utils
@@ -642,15 +642,15 @@ id regionAsJSON(MKCoordinateRegion region) {
         CGRect frame = [self frameForMarker:mrkView];
         CGPoint point = [self.projection pointForCoordinate:mrkView.coordinate];
         NSDictionary* frameDict = @{
-                                    @"x": @(frame.origin.x),
-                                    @"y": @(frame.origin.y),
-                                    @"width": @(frame.size.width),
-                                    @"height": @(frame.size.height)
-                                    };
+            @"x": @(frame.origin.x),
+            @"y": @(frame.origin.y),
+            @"width": @(frame.size.width),
+            @"height": @(frame.size.height)
+        };
         NSDictionary* pointDict = @{
-                                    @"x": @(point.x),
-                                    @"y": @(point.y)
-                                    };
+            @"x": @(point.x),
+            @"y": @(point.y)
+        };
         NSString* k = mrkView.identifier;
         BOOL isVisible = CGRectIntersectsRect(self.bounds, frame);
         if (k != nil && (!onlyVisible || isVisible)) {
@@ -711,9 +711,9 @@ id regionAsJSON(MKCoordinateRegion region) {
             SEL action = [self getActionForTarget:trg];
             isZoomTapGesture = [NSStringFromSelector(action) isEqualToString:@"handleZoomTapGesture:"];
             [origTargetsActions addObject:@{
-                                            @"target": [NSValue valueWithNonretainedObject:target],
-                                            @"action": NSStringFromSelector(action)
-                                            }];
+                @"target": [NSValue valueWithNonretainedObject:target],
+                @"action": NSStringFromSelector(action)
+            }];
         }
         if (isZoomTapGesture && self.zoomTapEnabled == NO) {
             [view removeGestureRecognizer:gestureRecognizer];
@@ -747,16 +747,16 @@ id regionAsJSON(MKCoordinateRegion region) {
     BOOL isTap = [gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] || [gestureRecognizer isMemberOfClass:[UITapGestureRecognizer class]];
     if (isTap) {
         BOOL isTapInsideBubble = NO;
-    CGPoint tapPoint = CGPointZero;
-    CGPoint tapPointInBubble = CGPointZero;
-    
-    NSArray* touches = [gestureRecognizer valueForKey:@"touches"];
-    UITouch* oneTouch = [touches firstObject];
-    NSArray* delayedTouches = [gestureRecognizer valueForKey:@"delayedTouches"];
-    NSObject* delayedTouch = [delayedTouches firstObject]; //UIGestureDeleayedTouch
-    UITouch* tapTouch = [delayedTouch valueForKey:@"stateWhenDelayed"];
-    if (!tapTouch)
-        tapTouch = oneTouch;
+        CGPoint tapPoint = CGPointZero;
+        CGPoint tapPointInBubble = CGPointZero;
+        
+        NSArray* touches = [gestureRecognizer valueForKey:@"touches"];
+        UITouch* oneTouch = [touches firstObject];
+        NSArray* delayedTouches = [gestureRecognizer valueForKey:@"delayedTouches"];
+        NSObject* delayedTouch = [delayedTouches firstObject]; //UIGestureDeleayedTouch
+        UITouch* tapTouch = [delayedTouch valueForKey:@"stateWhenDelayed"];
+        if (!tapTouch)
+            tapTouch = oneTouch;
         tapPoint = [tapTouch locationInView:self];
         isTapInsideBubble = tapTouch != nil && CGRectContainsPoint(bubbleFrame, tapPoint);
         if (isTapInsideBubble) {
@@ -833,101 +833,101 @@ id regionAsJSON(MKCoordinateRegion region) {
                       ofObject:(id)object
                         change:(NSDictionary *)change
                        context:(void *)context {
-  if ([keyPath isEqualToString:@"myLocation"]){
-    CLLocation *location = [object myLocation];
-
-    id event = @{@"coordinate": @{
-                    @"latitude": @(location.coordinate.latitude),
-                    @"longitude": @(location.coordinate.longitude),
-                    @"altitude": @(location.altitude),
-                    @"timestamp": @(location.timestamp.timeIntervalSinceReferenceDate * 1000),
-                    @"accuracy": @(location.horizontalAccuracy),
-                    @"altitudeAccuracy": @(location.verticalAccuracy),
-                    @"speed": @(location.speed),
-                    @"heading": @(location.course),
-                    }
-                };
-
-  if (self.onUserLocationChange) self.onUserLocationChange(event);
-  } else {
-    // This message is not for me; pass it on to super.
-    [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
-  }
+    if ([keyPath isEqualToString:@"myLocation"]){
+        CLLocation *location = [object myLocation];
+        
+        id event = @{@"coordinate": @{
+                             @"latitude": @(location.coordinate.latitude),
+                             @"longitude": @(location.coordinate.longitude),
+                             @"altitude": @(location.altitude),
+                             @"timestamp": @(location.timestamp.timeIntervalSinceReferenceDate * 1000),
+                             @"accuracy": @(location.horizontalAccuracy),
+                             @"altitudeAccuracy": @(location.verticalAccuracy),
+                             @"speed": @(location.speed),
+                             @"heading": @(location.course),
+        }
+        };
+        
+        if (self.onUserLocationChange) self.onUserLocationChange(event);
+    } else {
+        // This message is not for me; pass it on to super.
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
 }
 
 + (NSString *)GetIconUrl:(GMUPlacemark *) marker parser:(GMUKMLParser *) parser {
 #ifdef HAVE_GOOGLE_MAPS_UTILS
-  if (marker.style.styleID != nil) {
-    for (GMUStyle *style in parser.styles) {
-      if (style.styleID == marker.style.styleID) {
-        return style.iconUrl;
-      }
+    if (marker.style.styleID != nil) {
+        for (GMUStyle *style in parser.styles) {
+            if (style.styleID == marker.style.styleID) {
+                return style.iconUrl;
+            }
+        }
     }
-  }
-
-  return marker.style.iconUrl;
+    
+    return marker.style.iconUrl;
 #else
     REQUIRES_GOOGLE_MAPS_UTILS("GetIconUrl:parser:"); return @"";
 #endif
 }
 
 - (NSString *)KmlSrc {
-  return _kmlSrc;
+    return _kmlSrc;
 }
 
 - (void)setKmlSrc:(NSString *)kmlUrl {
 #ifdef HAVE_GOOGLE_MAPS_UTILS
-
-  _kmlSrc = kmlUrl;
-
-  NSURL *url = [NSURL URLWithString:kmlUrl];
-  NSData *urlData = nil;
-
-  if ([url isFileURL]) {
-    urlData = [NSData dataWithContentsOfURL:url];
-  } else {
-    urlData = [[NSFileManager defaultManager] contentsAtPath:kmlUrl];
-  }
-
-  GMUKMLParser *parser = [[GMUKMLParser alloc] initWithData:urlData];
-  [parser parse];
-
-  NSUInteger index = 0;
-  NSMutableArray *markers = [[NSMutableArray alloc]init];
-
-  for (GMUPlacemark *place in parser.placemarks) {
-
-    CLLocationCoordinate2D location =((GMUPoint *) place.geometry).coordinate;
-
-    AIRGoogleMapMarker *marker = (AIRGoogleMapMarker *)[[AIRGoogleMapMarkerManager alloc] view];
-    if (!marker.bridge) {
-      marker.bridge = _bridge;
+    
+    _kmlSrc = kmlUrl;
+    
+    NSURL *url = [NSURL URLWithString:kmlUrl];
+    NSData *urlData = nil;
+    
+    if ([url isFileURL]) {
+        urlData = [NSData dataWithContentsOfURL:url];
+    } else {
+        urlData = [[NSFileManager defaultManager] contentsAtPath:kmlUrl];
     }
-    marker.identifier = place.title;
-    marker.coordinate = location;
-    marker.title = place.title;
-    marker.subtitle = place.snippet;
-    marker.pinColor = place.style.fillColor;
-    marker.imageSrc = [AIRGoogleMap GetIconUrl:place parser:parser];
-    marker.layer.backgroundColor = [UIColor clearColor].CGColor;
-    marker.layer.position = CGPointZero;
-
-    [self insertReactSubview:(UIView *) marker atIndex:index];
-
-    [markers addObject:@{@"id": marker.identifier,
-                         @"title": marker.title,
-                         @"description": marker.subtitle,
-                         @"coordinate": @{
-                             @"latitude": @(location.latitude),
-                             @"longitude": @(location.longitude)
+    
+    GMUKMLParser *parser = [[GMUKMLParser alloc] initWithData:urlData];
+    [parser parse];
+    
+    NSUInteger index = 0;
+    NSMutableArray *markers = [[NSMutableArray alloc]init];
+    
+    for (GMUPlacemark *place in parser.placemarks) {
+        
+        CLLocationCoordinate2D location =((GMUPoint *) place.geometry).coordinate;
+        
+        AIRGoogleMapMarker *marker = (AIRGoogleMapMarker *)[[AIRGoogleMapMarkerManager alloc] view];
+        if (!marker.bridge) {
+            marker.bridge = _bridge;
+        }
+        marker.identifier = place.title;
+        marker.coordinate = location;
+        marker.title = place.title;
+        marker.subtitle = place.snippet;
+        marker.pinColor = place.style.fillColor;
+        marker.imageSrc = [AIRGoogleMap GetIconUrl:place parser:parser];
+        marker.layer.backgroundColor = [UIColor clearColor].CGColor;
+        marker.layer.position = CGPointZero;
+        
+        [self insertReactSubview:(UIView *) marker atIndex:index];
+        
+        [markers addObject:@{@"id": marker.identifier,
+                             @"title": marker.title,
+                             @"description": marker.subtitle,
+                             @"coordinate": @{
+                                     @"latitude": @(location.latitude),
+                                     @"longitude": @(location.longitude)
                              }
-                         }];
-
-    index++;
-  }
-
-  id event = @{@"markers": markers};
-  if (self.onKmlReady) self.onKmlReady(event);
+        }];
+        
+        index++;
+    }
+    
+    id event = @{@"markers": markers};
+    if (self.onKmlReady) self.onKmlReady(event);
 #else
     REQUIRES_GOOGLE_MAPS_UTILS();
 #endif
@@ -935,18 +935,18 @@ id regionAsJSON(MKCoordinateRegion region) {
 
 - (void) addClusterItems: (NSArray *)items {
 #ifdef HAVE_GOOGLE_MAPS_UTILS
+    [self clearClusterItems];
+    
     for (int i = 0; i < items.count; i++) {
         NSDictionary* dict = (NSDictionary *)items[i];
         NSString* identifier = dict[@"id"];
         
-        if (![_clusterMap objectForKey:identifier]) {
-            double lat = [[dict objectForKey:@"lat"] doubleValue];
-            double lng = [[dict objectForKey:@"lng"] doubleValue];
-            
-            AIRClusterItem* item = [[AIRClusterItem alloc] initWithPosition:dict[@"id"] location:CLLocationCoordinate2DMake(lat, lng) iconUrl:dict[@"iconUrl"] iconWidth:dict[@"iconWidth"]];
-            [_clusterManager addItem:item];
-            _clusterMap[identifier] = item;
-        }
+        double lat = [[dict objectForKey:@"lat"] doubleValue];
+        double lng = [[dict objectForKey:@"lng"] doubleValue];
+        
+        AIRClusterItem* item = [[AIRClusterItem alloc] initWithPosition:dict[@"id"] location:CLLocationCoordinate2DMake(lat, lng) iconUrl:dict[@"iconUrl"] iconWidth:dict[@"iconWidth"]];
+        [_clusterManager addItem:item];
+        _clusterMap[identifier] = item;
     }
     
     [_clusterManager cluster];
@@ -956,7 +956,6 @@ id regionAsJSON(MKCoordinateRegion region) {
 - (void) clearClusterItems {
 #ifdef HAVE_GOOGLE_MAPS_UTILS
     [_clusterManager clearItems];
-    [_clusterMap removeAllObjects];
 #endif
 }
 

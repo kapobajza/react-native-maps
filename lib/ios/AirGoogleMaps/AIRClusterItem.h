@@ -14,10 +14,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface AIRClusterItem : NSObject<GMUClusterItem>
 
-@property(nonatomic, weak) NSString *identifier;
+@property(nonatomic, strong) NSString *identifier;
 @property(nonatomic, readwrite) CLLocationCoordinate2D position;
-@property(nonatomic, weak) NSString *iconUrl;
-@property(nonatomic, weak) NSNumber *iconWidth;
+@property(nonatomic, strong) NSString *iconUrl;
+@property(nonatomic, strong) NSNumber *iconWidth;
 
 - (instancetype) initWithPosition: (NSString *)identifier
                          location:(CLLocationCoordinate2D)position
